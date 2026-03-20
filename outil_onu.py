@@ -1,52 +1,26 @@
-import streamlit as st
-import requests
-from bs4 import BeautifulSoup
-import urllib.parse
-
-st.set_page_config(page_title="Recherche ONU EN/FR", layout="wide")
-
-st.title("🔎 Recherche bilingue ONU")
-
-query = st.text_input("Recherche (sans guillemets recommandé)")
-
-def highlight(text, term):
-    return text.replace(term, f"**{term}**")
-
 if st.button("RECHERCHER") and query:
 
-    term = query
     encoded = urllib.parse.quote(query)
+    url = f"https://www.bing.com/search?q=site:un.org+{encoded}"
 
-    # 🔎 DuckDuckGo (version HTML = non bloquée)
-    url = f"https://html.duckduckgo.com/html/?q=site:un.org+{encoded}"
+    headers = {
+        "User-Agent": "Mozilla/5.0"
+    }
 
-    r = requests.get(url)
-    soup = BeautifulSoup(r.text, "html.parser")
+    response = requests.get(url, headers=headers)
+    soup = BeautifulSoup(response.text, "html.parser")
 
-    results = soup.find_all("a", class_="result__a")
+    results = soup.select("li.b_algo")
 
-    st.markdown("### Résultats")
+    found = False
 
-    count = 0
+    for r in results:
+        text = r.get_text()
 
-    for res in results:
-        text = res.get_text()
+        if query.lower() in text.lower():
+            st.write("—")
+            st.write(highlight(text, query))
+            found = True
 
-        if term.lower() in text.lower():
-
-            highlighted = highlight(text, term)
-
-            st.markdown(f"🇬🇧 {highlighted}")
-
-            deepl_url = f"https://www.deepl.com/translator#en/fr/{urllib.parse.quote(text)}"
-            st.markdown(f"[🔗 Traduire avec DeepL]({deepl_url})")
-
-            st.markdown("---")
-
-            count += 1
-
-        if count >= 5:
-            break
-
-    if count == 0:
+    if not found:
         st.warning("Aucun résultat trouvé. Essaie avec moins de mots.")
