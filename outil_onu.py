@@ -1,3 +1,17 @@
+import streamlit as st
+import requests
+from bs4 import BeautifulSoup
+import urllib.parse
+
+st.set_page_config(page_title="Recherche ONU EN/FR", layout="wide")
+
+st.title("🔎 Recherche bilingue ONU")
+
+query = st.text_input("Recherche (sans guillemets recommandé)")
+
+def highlight(text, term):
+    return text.replace(term, f"**{term}**")
+
 if st.button("RECHERCHER") and query:
 
     encoded = urllib.parse.quote(query)
