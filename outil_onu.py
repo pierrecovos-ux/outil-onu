@@ -17,28 +17,29 @@ if st.button("RECHERCHER") and query:
     term = query.replace('"', '')
     encoded = urllib.parse.quote(query)
 
-    # 🔎 recherche sur site ONU multilingue
-    url = f"https://www.un.org/en/search/index.html?query={encoded}"
+    # 🔎 Google + filtre ONU
+    url = f"https://www.google.com/search?q=site:un.org+{encoded}"
 
-    r = requests.get(url)
+    headers = {"User-Agent": "Mozilla/5.0"}
+    r = requests.get(url, headers=headers)
+
     soup = BeautifulSoup(r.text, "html.parser")
 
-    results = soup.find_all("a")
+    results = soup.select("div.BNeawe")
 
     st.markdown("### Résultats")
 
     count = 0
 
-    for link in results:
-        text = link.get_text()
+    for res in results:
+        text = res.get_text()
 
-        if term.lower() in text.lower() and len(text) > 30:
+        if term.lower() in text.lower() and len(text) > 40:
 
             highlighted = highlight(text, term)
 
             st.markdown(f"🇬🇧 {highlighted}")
 
-            # lien DeepL automatique
             deepl_url = f"https://www.deepl.com/translator#en/fr/{urllib.parse.quote(text)}"
             st.markdown(f"[🔗 Traduire avec DeepL]({deepl_url})")
 
@@ -50,4 +51,4 @@ if st.button("RECHERCHER") and query:
             break
 
     if count == 0:
-        st.warning("Aucun résultat trouvé. Essaie sans guillemets.")
+        st.warning("Aucun résultat trouvé. Essaie sans guillemets ou avec moins de mots.")
