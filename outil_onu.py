@@ -7,25 +7,23 @@ st.set_page_config(page_title="Recherche ONU EN/FR", layout="wide")
 
 st.title("🔎 Recherche bilingue ONU")
 
-query = st.text_input("Recherche exacte (avec guillemets)")
+query = st.text_input("Recherche (sans guillemets recommandé)")
 
 def highlight(text, term):
     return text.replace(term, f"**{term}**")
 
 if st.button("RECHERCHER") and query:
 
-    term = query.replace('"', '')
+    term = query
     encoded = urllib.parse.quote(query)
 
-    # 🔎 Google + filtre ONU
-    url = f"https://www.google.com/search?q=site:un.org+{encoded}"
+    # 🔎 DuckDuckGo (version HTML = non bloquée)
+    url = f"https://html.duckduckgo.com/html/?q=site:un.org+{encoded}"
 
-    headers = {"User-Agent": "Mozilla/5.0"}
-    r = requests.get(url, headers=headers)
-
+    r = requests.get(url)
     soup = BeautifulSoup(r.text, "html.parser")
 
-    results = soup.select("div.BNeawe")
+    results = soup.find_all("a", class_="result__a")
 
     st.markdown("### Résultats")
 
@@ -34,7 +32,7 @@ if st.button("RECHERCHER") and query:
     for res in results:
         text = res.get_text()
 
-        if term.lower() in text.lower() and len(text) > 40:
+        if term.lower() in text.lower():
 
             highlighted = highlight(text, term)
 
@@ -51,4 +49,4 @@ if st.button("RECHERCHER") and query:
             break
 
     if count == 0:
-        st.warning("Aucun résultat trouvé. Essaie sans guillemets ou avec moins de mots.")
+        st.warning("Aucun résultat trouvé. Essaie avec moins de mots.")
